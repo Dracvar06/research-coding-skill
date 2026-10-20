@@ -1,6 +1,7 @@
 #!/bin/bash
 # Re-run the planted-bug evaluation (9 headless Claude Code sessions).
 # Usage: evals/run.sh [workdir]   (needs: claude CLI, python3 with numpy, scipy, scikit-learn)
+# Set RUNS to choose runs, e.g. RUNS="yarkovsky:buggy:skill yarkovsky:buggy:base" evals/run.sh
 #
 # Runs happen in a temp dir OUTSIDE the repo, with opaque run names, and the skill is
 # loaded from a plugin dir containing only SKILL.md + references/ + templates/, so the
@@ -13,15 +14,16 @@ mkdir -p "$W/plugin/rc/.claude-plugin" "$W/plugin/rc/skills/research-coding" "$W
 echo '{"name":"rc","version":"0.1.0","description":"research coding skill"}' > "$W/plugin/rc/.claude-plugin/plugin.json"
 cp -r "$REPO/SKILL.md" "$REPO/references" "$REPO/templates" "$W/plugin/rc/skills/research-coding/"
 
-RUNS="evoked:buggy:skill peakfit:buggy:skill decoding:buggy:skill
+RUNS=${RUNS:-"evoked:buggy:skill peakfit:buggy:skill decoding:buggy:skill
 evoked:buggy:base peakfit:buggy:base decoding:buggy:base
-evoked:clean:skill peakfit:clean:skill decoding:clean:skill"
+evoked:clean:skill peakfit:clean:skill decoding:clean:skill"}
 : > "$W/run-map.txt"; i=0
 for spec in $RUNS; do
   i=$((i+1)); id=$(printf "run-%02d" $i); IFS=: read -r t v c <<< "$spec"
   mkdir -p "$W/runs/$id"
   cp "$REPO/evals/tasks/$t/$v/"{analysis.py,NOTES.md} "$W/runs/$id/"
-  python3 "$REPO/evals/generators/gen_$t.py" "$W/runs/$id/data"
+  gen="$REPO/evals/generators/gen_$t.py"
+  if [ -f "$gen" ]; then python3 "$gen" "$W/runs/$id/data"; fi
   echo "$id $t $v $c" >> "$W/run-map.txt"
 done
 
