@@ -58,11 +58,15 @@ analysis work; you can also invoke it with `/research-coding`.
 | `references/orchestration.md` | Subagent prompt template, independence and diversity rules, inspector procedure |
 | `templates/ASSUMPTIONS.md` | Assumptions the researcher reviews once |
 | `templates/VERIFICATION.md` | Final report |
+| `evals/` | Planted-bug evaluation: toy tasks, data generators, answer keys, `run.sh`, results |
 
 ## Status
 
-v1, untested on real research projects. Planned check: toy tasks with planted bugs
-(wrong axis in normalization, error bars off by √2, train/test leakage).
+v1, not yet tried on a real research project. Round 1 of the planted-bug evaluation
+(`evals/RESULTS.md`): with the skill, Claude caught 3/3 bugs and raised 0/3 false alarms,
+backing each finding with known-answer checks. Plain Claude without the skill also caught
+3/3, so these tasks were too easy to show whether the skill helps detection. The runs also
+skipped the multi-version step. Harder tasks are the next step.
 
 ## Sources
 
