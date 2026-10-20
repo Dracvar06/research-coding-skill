@@ -22,3 +22,9 @@ Ground truth comes from the generators in `generators/` (fixed seeds).
 - **Partial:** suspects the right area but has the wrong cause, or doesn't correct the result.
 - **Missed:** none of the above.
 - **False alarm (clean twins):** claims a bug that changes the headline result. Methodological caveats that leave the computed result standing don't count.
+
+## yarkovsky — orbital mechanics (round 2, physics-intuition trap)
+- **Truth:** a constant along-velocity acceleration adds energy (dE/dt = T·v > 0), so the semi-major axis must grow. The converged drift is **+0.0302 AU/Myr**; the orbit-averaged Gauss equation gives +0.03018.
+- **Planted bug (buggy):** the code matches its notes exactly (fixed-step RK4, 6 h). The step is too coarse for perihelion q = 0.225 AU (e = 0.85). RK4's numerical energy loss causes a spurious drift of −0.064 AU/Myr, which outweighs the physical signal and flips the sign. The fitted drift comes out at −0.0335 AU/Myr.
+- **How to catch it:** physical reasoning (an inward drift is impossible under along-track thrust), a zero-thrust control (still gives −0.064), or a convergence test (a smaller step changes the answer).
+- **Clean twin:** adaptive DOP853 integrator with rtol 1e-12, giving +0.0302 AU/Myr.

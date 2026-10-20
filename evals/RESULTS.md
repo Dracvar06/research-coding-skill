@@ -1,6 +1,6 @@
 # Eval results: planted-bug toy tasks (round 1)
 
-Date: 2026-10-20. Runner: headless Claude Code (`claude -p`), default model of the environment (Sonnet 5.5), one run per cell. Setup and re-run instructions: `run.sh`. Answer keys: `answer-keys.md`. Raw outputs: `results/run-XX/` (mapping in `results/run-map.txt`).
+Date: 2026-10-20. Runner: headless Claude Code (`claude -p`), default model of the environment (Sonnet 5.5), one run per cell. Setup and re-run instructions: `run.sh`. Answer keys: `answer-keys.md`. Raw outputs: `results/round1/run-XX/` (mapping in `results/round1/run-map.txt`).
 
 ## Summary
 
@@ -61,3 +61,39 @@ On scripts this size, the lighter behaviour was enough. It also means the multi-
 - The bugs were planted by the same assistant that wrote the skill, so they may be biased toward bug types the skill already covers.
 - One run per cell on Sonnet 5.5: these results are anecdotes, not statistics. Opus/Fable may behave differently.
 - **Containment:** runners worked in copies outside the repo. One run (run-05) wrote a scratch file one directory up, and one (run-08) listed the parent directory; neither read the answer keys or the README. The answer keys were written only after all runs had finished.
+
+---
+
+# Round 2: a physics-intuition trap (Yarkovsky orbit)
+
+Same runner and model (Sonnet 5.5). Raw outputs: `results/round2/`.
+
+**Task.** A near-Earth asteroid (a = 1.5 AU, e = 0.85) with a small Yarkovsky push along its velocity, integrated with fixed-step RK4 at 6 h.
+- The code does exactly what the notes say, so there is no mismatch to read off.
+- At perihelion (0.225 AU) the step is too coarse. The integrator's own energy loss (−0.064 AU/Myr) outweighs the real effect (+0.030 AU/Myr), so the code reports the orbit *shrinking* at −0.034 AU/Myr.
+- A physicist should object that a push along the direction of motion adds energy, so the orbit cannot shrink.
+- The skill's tests ("switch the force off" and "halve the step") also expose it.
+
+This round ran 3 trials per condition on the buggy version and 2 on the clean twin.
+
+| | Skill | Plain Claude |
+|---|---|---|
+| Buggy: caught it, corrected result to +0.030 | **3/3** | **3/3** |
+| Clean twin: correctly said "correct" | 2/2 | 2/2 |
+| Average cost per run (buggy) | $0.20 | $0.14 |
+
+**Every run caught the trap, with or without the skill.**
+- All 6 buggy runs ran the zero-thrust control.
+- All 6 noticed that an inward drift contradicts the energy argument.
+- All 6 confirmed +0.030 with an analytic orbit average.
+
+One plain run (run-04) first gave a wrong analytic estimate (+0.07, from a shortcut formula). It then corrected itself after a convergence check, ending at +0.030. Two clean-twin runs (one with the skill, one without) also pointed out that 1e-11 m/s² is large for a real Yarkovsky acceleration. That's a fair physical-realism remark, not a false alarm.
+
+## What rounds 1–2 show together
+
+- **Reviews it's asked for:** when Claude is asked to review an analysis ("please check it's correct"), Sonnet 5.5 already does what the skill prescribes: null controls, convergence tests, analytic cross-checks and physical sanity checks. The skill adds written assumptions, a report and somewhat more systematic evidence, at about 1.5× the cost. It didn't change any verdict in 15 buggy and 7 clean runs.
+- **Physics intuition:** it was not the weak point here. The model reasoned correctly about energy and orbits without being told to.
+- **Still untested:**
+  - **Build mode.** Claude writes the analysis itself and nobody asks it to check. This was the researcher's original complaint, and it's where a skill that makes verification the default could matter. A plain "write this and give me the number" request may not trigger any checking at all.
+  - **Bugs with no telltale contradiction** (for example a same-sign magnitude error), and long pipelines.
+  - **The multi-version machinery**, still never used.
