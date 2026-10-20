@@ -40,6 +40,8 @@ were told the same thing*. So this skill uses independent versions as a bug
 - **Audit** — treat existing code as version 1, reimplement critical parts
   independently, and run known-answer tests against it.
 
+**Trying it on your own research?** See [TRY-IT.md](TRY-IT.md).
+
 ## Install
 
 ```bash
